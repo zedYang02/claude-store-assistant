@@ -1,0 +1,8 @@
+{
+  "X200 blender": { "price": 49.99, "stock": 5 },
+  "ZephyrPro headphones": { "price": 89.99, "stock": 0 },
+  "Lumina desk lamp": { "price": 24.99, "stock": 12 },
+  "AeroBook laptop stand": { "price": 34.50, "stock": 8 },
+  "Terra ceramic mug": { "price": 12.00, "stock": 40 },
+  "Nimbus wireless mouse": { "price": 19.99, "stock": 15 }
+}
