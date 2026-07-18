@@ -46,6 +46,34 @@ On each turn the assistant sends the full conversation plus the tool definitions
 
 The catalog lives in `products.json`, so adding products needs no code changes.
 
+## Design decisions worth noting
+
+A few choices that make this more than a single API call:
+
+- **Read-only vs. side-effecting tools.** `get_price`, `check_stock`, and
+  `calculate_total` only *read* — Claude can call them freely. `place_order`
+  *acts*, so its description tells Claude to call it "only when the user clearly
+  asks to buy," and the code independently re-checks stock before committing. The
+  boundary between a quote and a purchase is enforced in both the prompt and the
+  code, not left to chance.
+- **Failures are data, not crashes.** `run_tool` returns `(result, is_error)`.
+  Order 5 of something with 0 in stock and the tool returns `is_error=True`; that
+  flag is passed back to Claude in the `tool_result`, so the model *adapts* ("sorry,
+  that's out of stock") instead of the program throwing. Tools can fail safely and
+  the conversation continues.
+- **A nested loop = memory + autonomy.** The outer loop is one iteration per user
+  turn and keeps the full `messages` history (so "how many are in stock?" resolves
+  "the blender" from an earlier turn). The inner loop lets Claude chain as many
+  tool calls as it needs before answering. The key detail: the assistant's content
+  is appended on *every* inner iteration, so the final answer is remembered next turn.
+- **Enum-constrained inputs.** Tool schemas pin `product` to an `enum` of real
+  catalog keys, so Claude can't invent a product that doesn't exist — ambiguous
+  input ("the lamp") resolves to a valid SKU or fails cleanly.
+
+## Verified
+
+Dependencies resolve and the app imports cleanly from a fresh `git clone` + `uv sync`.
+
 ## License
 
 MIT
